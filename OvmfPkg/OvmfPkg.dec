@@ -426,6 +426,17 @@
   gUefiOvmfPkgTokenSpaceGuid.PcdOvmfSecSvsmCaaBase|0|UINT32|0x66
   gUefiOvmfPkgTokenSpaceGuid.PcdOvmfSecSvsmCaaSize|0|UINT32|0x67
 
+  ## SVSM module values for presenting in metadata
+  gUefiOvmfPkgTokenSpaceGuid.PcdSvsmBase|0x0|UINT32|0x101
+  gUefiOvmfPkgTokenSpaceGuid.PcdSvsmOffset|0x0|UINT32|0x102
+  gUefiOvmfPkgTokenSpaceGuid.PcdSvsmSecMemBase|0|UINT32|0x103
+  gUefiOvmfPkgTokenSpaceGuid.PcdSvsmSecMemSize|0x9e000|UINT32|0x104
+  gUefiOvmfPkgTokenSpaceGuid.PcdSvsmSecretsBase|0x9e000|UINT32|0x105
+  gUefiOvmfPkgTokenSpaceGuid.PcdSvsmSecretsSize|0x1000|UINT32|0x106
+  gUefiOvmfPkgTokenSpaceGuid.PcdSvsmCpuidBase|0x9f000|UINT32|0x107
+  gUefiOvmfPkgTokenSpaceGuid.PcdSvsmCpuidSize|0x1000|UINT32|0x108
+  gUefiOvmfPkgTokenSpaceGuid.PcdSevEsApResetIp|0xfffffff0|UINT32|0x109
+
 [PcdsDynamic, PcdsDynamicEx]
   gUefiOvmfPkgTokenSpaceGuid.PcdEmuVariableEvent|0|UINT64|2
   gUefiOvmfPkgTokenSpaceGuid.PcdOvmfFlashVariablesEnable|FALSE|BOOLEAN|0x10
