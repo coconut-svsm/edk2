@@ -145,7 +145,29 @@
   %define SEV_FW_HASH_BLOCK_BASE  FixedPcdGet32 (PcdQemuHashTableBase)
   %define SEV_FW_HASH_BLOCK_SIZE  FixedPcdGet32 (PcdQemuHashTableSize)
 
+%ifdef SVSM_RESET_VECTOR
+  %define SVSM_BASE_ADDR                (FixedPcdGet32 (PcdSvsmBase))
+  %define SVSM_OFFSET                   (FixedPcdGet32 (PcdSvsmOffset))
+  %define SVSM_SEC_MEM_BASE             (FixedPcdGet32 (PcdSvsmSecMemBase))
+  %define SVSM_SEC_MEM_SIZE             (FixedPcdGet32 (PcdSvsmSecMemSize))
+  %define SVSM_SECRETS_BASE             (FixedPcdGet32 (PcdSvsmSecretsBase))
+  %define SVSM_SECRETS_SIZE             (FixedPcdGet32 (PcdSvsmSecretsSize))
+  %define SVSM_CPUID_BASE               (FixedPcdGet32 (PcdSvsmCpuidBase))
+  %define SVSM_CPUID_SIZE               (FixedPcdGet32 (PcdSvsmCpuidSize))
+  %define SEV_ES_AP_RESET_IP            (FixedPcdGet32 (PcdSevEsApResetIp))
+
+  %define SVSM_SEV_METADATA_VERSION           1
+  %define SVSM_SECTION_TYPE_SNP_SEC_MEM     0x1
+  %define SVSM_SECTION_TYPE_SNP_SECRETS     0x2
+  %define SVSM_SECTION_TYPE_CPUID           0x3
+%endif
+
 %include "Ia16/Launch.asm"
 %include "Ia16/OvmfMetadata.asm"
+
+%ifdef SVSM_RESET_VECTOR
+  %include "Ia16/SvsmMetadata.asm"
+%endif
+
 %include "Ia16/ResetVectorVtf0.asm"
 

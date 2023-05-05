@@ -26,3 +26,53 @@ ALIGN 16
     TIMES (0x1000 - ($ - EndOfPageTables) - 0x20) DB 0
 %endif
 
+;
+; Launch either the SVSM module or OVMF in real mode, based on
+; the current target.
+;
+LaunchReal16:
+%ifdef SVSM_RESET_VECTOR
+    jmp     LaunchSvsm
+%endif
+
+LaunchOvmf:
+    jmp     short EarlyBspInitReal16
+
+%ifdef SVSM_RESET_VECTOR
+LaunchSvsm:
+    xor     ax, ax
+    mov     ds, ax
+    mov     es, ax
+    mov     fs, ax
+    mov     gs, ax
+    mov     ss, ax
+
+    ; Enable protected mode and disable write-through and memory caches
+    mov     eax, cr0
+    and     eax, ~((1 << 30) | (1 << 29))
+    or      al, 1
+    mov     cr0, eax
+
+o32 lgdt    [word cs:ADDR16_OF(gdt32_descr)]
+    jmp     8:dword ADDR_OF(protected_mode)
+
+BITS    32
+protected_mode:
+    mov     ax, 16
+    mov     ds, ax
+    mov     es, ax
+    mov     fs, ax
+    mov     gs, ax
+    mov     ss, ax
+    jmp     8:SVSM_BASE_ADDR
+
+gdt32:
+    dq      0
+    dq      0x00cf9b000000ffff
+    dq      0x00cf93000000ffff
+gdt32_end:
+
+gdt32_descr:
+    dw      gdt32_end - gdt32 - 1
+    dd      ADDR_OF(gdt32)
+%endif

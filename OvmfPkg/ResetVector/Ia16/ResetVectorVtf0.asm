@@ -63,7 +63,7 @@ BITS 32
     jmp     Main32
 BITS 16
 .Real:
-    jmp     EarlyBspInitReal16
+    jmp     LaunchReal16
 
 %endif
 

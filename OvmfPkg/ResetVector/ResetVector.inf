@@ -66,3 +66,12 @@
   gUefiOvmfPkgTokenSpaceGuid.PcdOvmfSecSvsmCaaSize
   gUefiOvmfPkgTokenSpaceGuid.PcdOvmfSnpSecretsBase
   gUefiOvmfPkgTokenSpaceGuid.PcdOvmfSnpSecretsSize
+  gUefiOvmfPkgTokenSpaceGuid.PcdSvsmBase
+  gUefiOvmfPkgTokenSpaceGuid.PcdSvsmOffset
+  gUefiOvmfPkgTokenSpaceGuid.PcdSvsmSecMemBase
+  gUefiOvmfPkgTokenSpaceGuid.PcdSvsmSecMemSize
+  gUefiOvmfPkgTokenSpaceGuid.PcdSvsmSecretsBase
+  gUefiOvmfPkgTokenSpaceGuid.PcdSvsmSecretsSize
+  gUefiOvmfPkgTokenSpaceGuid.PcdSvsmCpuidBase
+  gUefiOvmfPkgTokenSpaceGuid.PcdSvsmCpuidSize
+  gUefiOvmfPkgTokenSpaceGuid.PcdSevEsApResetIp
