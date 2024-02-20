@@ -1,7 +1,7 @@
 /** @file
   This file defines the Redfish debug library interface.
 
-  Copyright (c) 2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+  Copyright (c) 2023-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
@@ -11,10 +11,44 @@
 #define REDFISH_DEBUG_LIB_H_
 
 #include <Uefi.h>
+#include <Library/HiiUtilityLib.h>
 #include <Library/JsonLib.h>
 #include <Library/RedfishLib.h>
 
-#define DEBUG_REDFISH_NETWORK  DEBUG_INFO   ///< Debug error level for Redfish networking function
+#include <Protocol/EdkIIRedfishPlatformConfig.h>
+
+#define DEBUG_REDFISH_NETWORK         DEBUG_MANAGEABILITY   ///< Debug error level for Redfish networking function
+#define DEBUG_REDFISH_HOST_INTERFACE  DEBUG_MANAGEABILITY   ///< Debug error level for Redfish networking function
+
+/**
+  Debug print the value of StatementValue.
+
+  @param[in]  ErrorLevel     DEBUG macro error level.
+  @param[in]  StatementValue The statement value to print.
+
+  @retval     EFI_SUCCESS            StatementValue is printed.
+  @retval     EFI_INVALID_PARAMETER  StatementValue is NULL.
+**/
+EFI_STATUS
+DumpHiiStatementValue (
+  IN UINTN                ErrorLevel,
+  IN HII_STATEMENT_VALUE  *StatementValue
+  );
+
+/**
+  Debug print the value of RedfishValue.
+
+  @param[in]  ErrorLevel     DEBUG macro error level.
+  @param[in]  RedfishValue   The statement value to print.
+
+  @retval     EFI_SUCCESS            RedfishValue is printed.
+  @retval     EFI_INVALID_PARAMETER  RedfishValue is NULL.
+**/
+EFI_STATUS
+DumpRedfishValue (
+  IN UINTN                ErrorLevel,
+  IN EDKII_REDFISH_VALUE  *RedfishValue
+  );
 
 /**
 
@@ -85,6 +119,41 @@ EFI_STATUS
 DumpHttpStatusCode (
   IN UINTN                 ErrorLevel,
   IN EFI_HTTP_STATUS_CODE  HttpStatusCode
+  );
+
+/**
+
+  This function dump the IPv4 address in given error level.
+
+  @param[in]  ErrorLevel  DEBUG macro error level
+  @param[in]  Ipv4Address IPv4 address to dump
+
+  @retval     EFI_SUCCESS         IPv4 address string is printed.
+  @retval     Others              Errors occur.
+
+**/
+EFI_STATUS
+DumpIpv4Address (
+  IN UINTN             ErrorLevel,
+  IN EFI_IPv4_ADDRESS  *Ipv4Address
+  );
+
+/**
+  Debug output raw data buffer.
+
+  @param[in]    ErrorLevel  DEBUG macro error level
+  @param[in]    Buffer      Debug output data buffer.
+  @param[in]    BufferSize  The size of Buffer in byte.
+
+  @retval EFI_SUCCESS             Debug dump finished.
+  @retval EFI_INVALID_PARAMETER   Buffer is NULL.
+
+**/
+EFI_STATUS
+DumpBuffer (
+  IN  UINTN  ErrorLevel,
+  IN  UINT8  *Buffer,
+  IN  UINTN  BufferSize
   );
 
 #endif

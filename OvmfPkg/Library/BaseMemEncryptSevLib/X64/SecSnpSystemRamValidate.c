@@ -10,7 +10,9 @@
 
 #include <Uefi/UefiBaseType.h>
 #include <Library/BaseLib.h>
+#include <Library/DebugLib.h>
 #include <Library/MemEncryptSevLib.h>
+#include <Library/CcExitLib.h>
 
 #include "SnpPageStateChange.h"
 
@@ -44,7 +46,7 @@ SevSnpIsVmpl0 (
   Rdx = 1;
 
   Status = AsmRmpAdjust ((UINT64)gVmpl0Data, 0, Rdx);
-  if (EFI_ERROR (Status)) {
+  if (Status != 0) {
     return FALSE;
   }
 
@@ -65,18 +67,31 @@ MemEncryptSevSnpPreValidateSystemRam (
   IN UINTN             NumPages
   )
 {
+  SEC_SEV_ES_WORK_AREA  *SevEsWorkArea;
+
   if (!MemEncryptSevSnpIsEnabled ()) {
     return;
   }
 
   //
   // The page state change uses the PVALIDATE instruction. The instruction
-  // can be run on VMPL-0 only. If its not VMPL-0 guest then terminate
-  // the boot.
+  // can be run at VMPL-0 only. If its not a VMPL-0 guest, then an SVSM must
+  // be present to perform the operation on behalf of the guest. If the guest
+  // is not running at VMPL-0 and an SVSM is not present, then terminate the
+  // boot.
   //
-  if (!SevSnpIsVmpl0 ()) {
+  if (!SevSnpIsVmpl0 () && !CcExitSnpSvsmPresent ()) {
     SnpPageStateFailureTerminate ();
   }
 
-  InternalSetPageState (BaseAddress, NumPages, SevSnpPagePrivate, TRUE);
+  SevEsWorkArea = (SEC_SEV_ES_WORK_AREA *)FixedPcdGet32 (PcdSevEsWorkAreaBase);
+
+  InternalSetPageState (
+    BaseAddress,
+    NumPages,
+    SevSnpPagePrivate,
+    TRUE,
+    SevEsWorkArea->WorkBuffer,
+    sizeof (SevEsWorkArea->WorkBuffer)
+    );
 }

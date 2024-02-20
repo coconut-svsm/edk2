@@ -36,10 +36,7 @@ CreatePageTable (
   MapAttribute.Uint64         = Address;
   MapAttribute.Bits.Present   = 1;
   MapAttribute.Bits.ReadWrite = 1;
-
-  MapMask.Bits.PageTableBaseAddress = 1;
-  MapMask.Bits.Present              = 1;
-  MapMask.Bits.ReadWrite            = 1;
+  MapMask.Uint64              = MAX_UINT64;
 
   PageTable           = 0;
   PageTableBufferSize = 0;
@@ -60,7 +57,8 @@ CreatePageTable (
              Address,
              Length,
              &MapAttribute,
-             &MapMask
+             &MapMask,
+             NULL
              );
   ASSERT (Status == EFI_BUFFER_TOO_SMALL);
   DEBUG ((DEBUG_INFO, "AP Page Table Buffer Size = %x\n", PageTableBufferSize));
@@ -75,7 +73,8 @@ CreatePageTable (
              Address,
              Length,
              &MapAttribute,
-             &MapMask
+             &MapMask,
+             NULL
              );
   ASSERT_EFI_ERROR (Status);
   return PageTable;

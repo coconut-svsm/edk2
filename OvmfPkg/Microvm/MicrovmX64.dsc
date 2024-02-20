@@ -91,15 +91,6 @@
   INTEL:*_*_*_CC_FLAGS = /D DISABLE_NEW_DEPRECATED_INTERFACES
   GCC:*_*_*_CC_FLAGS = -D DISABLE_NEW_DEPRECATED_INTERFACES
 
-  #
-  # SECURE_BOOT_FEATURE_ENABLED
-  #
-!if $(SECURE_BOOT_ENABLE) == TRUE
-  MSFT:*_*_*_CC_FLAGS = /D SECURE_BOOT_FEATURE_ENABLED
-  INTEL:*_*_*_CC_FLAGS = /D SECURE_BOOT_FEATURE_ENABLED
-  GCC:*_*_*_CC_FLAGS = -D SECURE_BOOT_FEATURE_ENABLED
-!endif
-
 !include NetworkPkg/NetworkBuildOptions.dsc.inc
 
 [BuildOptions.common.EDKII.DXE_RUNTIME_DRIVER]
@@ -171,6 +162,7 @@
   SerialPortLib|PcAtChipsetPkg/Library/SerialIoLib/SerialIoLib.inf
   MtrrLib|UefiCpuPkg/Library/MtrrLib/MtrrLib.inf
   MicrocodeLib|UefiCpuPkg/Library/MicrocodeLib/MicrocodeLib.inf
+  CpuPageTableLib|UefiCpuPkg/Library/CpuPageTableLib/CpuPageTableLib.inf
   UefiLib|MdePkg/Library/UefiLib/UefiLib.inf
   UefiBootServicesTableLib|MdePkg/Library/UefiBootServicesTableLib/UefiBootServicesTableLib.inf
   UefiRuntimeServicesTableLib|MdePkg/Library/UefiRuntimeServicesTableLib/UefiRuntimeServicesTableLib.inf
@@ -179,7 +171,6 @@
   DevicePathLib|MdePkg/Library/UefiDevicePathLibDevicePathProtocol/UefiDevicePathLibDevicePathProtocol.inf
   NvVarsFileLib|OvmfPkg/Library/NvVarsFileLib/NvVarsFileLib.inf
   FileHandleLib|MdePkg/Library/UefiFileHandleLib/UefiFileHandleLib.inf
-  UefiCpuLib|UefiCpuPkg/Library/BaseUefiCpuLib/BaseUefiCpuLib.inf
   SecurityManagementLib|MdeModulePkg/Library/DxeSecurityManagementLib/DxeSecurityManagementLib.inf
   UefiUsbLib|MdePkg/Library/UefiUsbLib/UefiUsbLib.inf
   SerializeVariablesLib|OvmfPkg/Library/SerializeVariablesLib/SerializeVariablesLib.inf
@@ -194,6 +185,7 @@
   MemEncryptTdxLib|OvmfPkg/Library/BaseMemEncryptTdxLib/BaseMemEncryptTdxLib.inf
   PeiHardwareInfoLib|OvmfPkg/Library/HardwareInfoLib/PeiHardwareInfoLib.inf
   DxeHardwareInfoLib|OvmfPkg/Library/HardwareInfoLib/DxeHardwareInfoLib.inf
+  ImagePropertiesRecordLib|MdeModulePkg/Library/ImagePropertiesRecordLib/ImagePropertiesRecordLib.inf
 
 !if $(SOURCE_DEBUG_ENABLE) == TRUE
   PeCoffExtraActionLib|SourceLevelDebugPkg/Library/PeCoffExtraActionLibDebug/PeCoffExtraActionLibDebug.inf
@@ -212,7 +204,7 @@
 !else
   OpensslLib|CryptoPkg/Library/OpensslLib/OpensslLibCrypto.inf
 !endif
-  RngLib|MdePkg/Library/BaseRngLibTimerLib/BaseRngLibTimerLib.inf
+  RngLib|MdeModulePkg/Library/BaseRngLibTimerLib/BaseRngLibTimerLib.inf
 
 !if $(SECURE_BOOT_ENABLE) == TRUE
   PlatformSecureLib|OvmfPkg/Library/PlatformSecureLib/PlatformSecureLib.inf
@@ -273,11 +265,7 @@
   PeiServicesLib|MdePkg/Library/PeiServicesLib/PeiServicesLib.inf
   PeiServicesTablePointerLib|MdePkg/Library/PeiServicesTablePointerLibIdt/PeiServicesTablePointerLibIdt.inf
   MemoryAllocationLib|MdePkg/Library/PeiMemoryAllocationLib/PeiMemoryAllocationLib.inf
-!if $(TOOL_CHAIN_TAG) == "XCODE5"
-  CpuExceptionHandlerLib|UefiCpuPkg/Library/CpuExceptionHandlerLib/Xcode5SecPeiCpuExceptionHandlerLib.inf
-!else
   CpuExceptionHandlerLib|UefiCpuPkg/Library/CpuExceptionHandlerLib/SecPeiCpuExceptionHandlerLib.inf
-!endif
   CcExitLib|OvmfPkg/Library/CcExitLib/SecCcExitLib.inf
   MemEncryptSevLib|OvmfPkg/Library/BaseMemEncryptSevLib/SecMemEncryptSevLib.inf
 
@@ -381,6 +369,7 @@
   PciExpressLib|OvmfPkg/Library/BaseCachingPciExpressLib/BaseCachingPciExpressLib.inf
 
 [LibraryClasses.common.DXE_DRIVER]
+  AcpiPlatformLib|OvmfPkg/Library/AcpiPlatformLib/DxeAcpiPlatformLib.inf
   PcdLib|MdePkg/Library/DxePcdLib/DxePcdLib.inf
   ResetSystemLib|OvmfPkg/Library/ResetSystemLib/DxeResetSystemLibMicrovm.inf
   HobLib|MdePkg/Library/DxeHobLib/DxeHobLib.inf
@@ -403,7 +392,6 @@
   PciLib|MdePkg/Library/BasePciLibPciExpress/BasePciLibPciExpress.inf
   PciPcdProducerLib|OvmfPkg/Fdt/FdtPciPcdProducerLib/FdtPciPcdProducerLib.inf
   PciExpressLib|OvmfPkg/Library/BaseCachingPciExpressLib/BaseCachingPciExpressLib.inf
-  CpuPageTableLib|UefiCpuPkg/Library/CpuPageTableLib/CpuPageTableLib.inf
   MpInitLib|UefiCpuPkg/Library/MpInitLib/DxeMpInitLib.inf
   NestedInterruptTplLib|OvmfPkg/Library/NestedInterruptTplLib/NestedInterruptTplLib.inf
   QemuFwCfgS3Lib|OvmfPkg/Library/QemuFwCfgS3Lib/DxeQemuFwCfgS3LibFwCfg.inf
@@ -478,6 +466,7 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdConOutUgaSupport|FALSE
   gEfiMdeModulePkgTokenSpaceGuid.PcdInstallAcpiSdtProtocol|TRUE
 !if $(SECURE_BOOT_ENABLE) == TRUE
+  gUefiOvmfPkgTokenSpaceGuid.PcdSecureBootSupported|TRUE
   gEfiMdeModulePkgTokenSpaceGuid.PcdRequireSelfSignedPk|TRUE
 !endif
 
@@ -557,15 +546,15 @@
   gEmbeddedTokenSpaceGuid.PcdMemoryTypeEfiRuntimeServicesCode|0x100
   gEmbeddedTokenSpaceGuid.PcdMemoryTypeEfiRuntimeServicesData|0x100
 
+  # use 1G pages
+  gEfiMdeModulePkgTokenSpaceGuid.PcdUse1GPageTable|TRUE
+
   #
   # Network Pcds
   #
 !include NetworkPkg/NetworkPcds.dsc.inc
 
   gEfiShellPkgTokenSpaceGuid.PcdShellFileOperationSize|0x20000
-
-  # IRQs 5, 9, 10, 11 are level-triggered
-  gUefiOvmfPkgTokenSpaceGuid.Pcd8259LegacyModeEdgeLevel|0x0E20
 
   # Point to the MdeModulePkg/Application/UiApp/UiApp.inf
   gEfiMdeModulePkgTokenSpaceGuid.PcdBootManagerMenuFile|{ 0x21, 0xaa, 0x2c, 0x46, 0x14, 0x76, 0x03, 0x45, 0x83, 0x6e, 0x8a, 0xb6, 0xf4, 0x66, 0x23, 0x31 }
@@ -574,6 +563,14 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdSerialUseMmio|FALSE
   gEfiMdeModulePkgTokenSpaceGuid.PcdSerialPciDeviceInfo|{0xFF}
   gEfiMdeModulePkgTokenSpaceGuid.PcdSerialRegisterBase|0x3f8
+
+  #
+  # PcdFirstTimeWakeUpAPsBySipi determines whether to employ
+  # SIPI instead of the INIT-SIPI-SIPI sequence during APs
+  # initialization. Deactivate this parameter to preserve
+  # the original execution of INIT-SIPI-SIPI.
+  #
+  gUefiCpuPkgTokenSpaceGuid.PcdFirstTimeWakeUpAPsBySipi|FALSE
 
 ################################################################################
 #
@@ -756,6 +753,7 @@
   OvmfPkg/VirtioBlkDxe/VirtioBlk.inf
   OvmfPkg/VirtioScsiDxe/VirtioScsi.inf
   OvmfPkg/VirtioRngDxe/VirtioRng.inf
+  OvmfPkg/VirtioSerialDxe/VirtioSerial.inf
   MdeModulePkg/Universal/WatchdogTimerDxe/WatchdogTimer.inf
   MdeModulePkg/Universal/MonotonicCounterRuntimeDxe/MonotonicCounterRuntimeDxe.inf
   MdeModulePkg/Universal/CapsuleRuntimeDxe/CapsuleRuntimeDxe.inf
@@ -780,14 +778,13 @@
   OvmfPkg/VirtioFsDxe/VirtioFsDxe.inf
   MdeModulePkg/Bus/Scsi/ScsiBusDxe/ScsiBusDxe.inf
   MdeModulePkg/Bus/Scsi/ScsiDiskDxe/ScsiDiskDxe.inf
-  OvmfPkg/SataControllerDxe/SataControllerDxe.inf
+  MdeModulePkg/Bus/Pci/SataControllerDxe/SataControllerDxe.inf
   MdeModulePkg/Bus/Ata/AtaAtapiPassThru/AtaAtapiPassThru.inf
   MdeModulePkg/Bus/Ata/AtaBusDxe/AtaBusDxe.inf
   MdeModulePkg/Bus/Pci/NvmExpressDxe/NvmExpressDxe.inf
   MdeModulePkg/Universal/HiiDatabaseDxe/HiiDatabaseDxe.inf
   MdeModulePkg/Universal/SetupBrowserDxe/SetupBrowserDxe.inf
   MdeModulePkg/Universal/DisplayEngineDxe/DisplayEngineDxe.inf
-  MdeModulePkg/Universal/MemoryTest/NullMemoryTestDxe/NullMemoryTestDxe.inf
 
   OvmfPkg/QemuVideoDxe/QemuVideoDxe.inf
   OvmfPkg/QemuRamfbDxe/QemuRamfbDxe.inf
@@ -846,6 +843,10 @@
       gEfiShellPkgTokenSpaceGuid.PcdShellLibAutoInitialize|FALSE
   }
   ShellPkg/DynamicCommand/HttpDynamicCommand/HttpDynamicCommand.inf {
+    <PcdsFixedAtBuild>
+      gEfiShellPkgTokenSpaceGuid.PcdShellLibAutoInitialize|FALSE
+  }
+  ShellPkg/DynamicCommand/VariablePolicyDynamicCommand/VariablePolicyDynamicCommand.inf {
     <PcdsFixedAtBuild>
       gEfiShellPkgTokenSpaceGuid.PcdShellLibAutoInitialize|FALSE
   }

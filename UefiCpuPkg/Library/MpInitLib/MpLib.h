@@ -27,7 +27,6 @@
 #include <Library/DebugLib.h>
 #include <Library/LocalApicLib.h>
 #include <Library/CpuLib.h>
-#include <Library/UefiCpuLib.h>
 #include <Library/TimerLib.h>
 #include <Library/SynchronizationLib.h>
 #include <Library/MtrrLib.h>
@@ -40,8 +39,17 @@
 #include <Register/Amd/Ghcb.h>
 
 #include <Guid/MicrocodePatchHob.h>
+#include "MpHandOff.h"
 
 #define WAKEUP_AP_SIGNAL  SIGNATURE_32 ('S', 'T', 'A', 'P')
+//
+// To trigger the start-up signal, BSP writes the specified
+// StartupSignalValue to the StartupSignalAddress of each processor.
+// This address is monitored by the APs, and as soon as they receive
+// the value that matches the MP_HAND_OFF_SIGNAL, they will wake up
+// and switch the context from PEI to DXE phase.
+//
+#define MP_HAND_OFF_SIGNAL  SIGNATURE_32 ('M', 'P', 'H', 'O')
 
 #define CPU_INIT_MP_LIB_HOB_GUID \
   { \
@@ -195,6 +203,8 @@ typedef struct _CPU_MP_DATA CPU_MP_DATA;
 // MP CPU exchange information for AP reset code
 // This structure is required to be packed because fixed field offsets
 // into this structure are used in assembly code in this module
+// Assembly routines should refrain from directly interacting with
+// the internal details of CPU_MP_DATA.
 //
 typedef struct {
   UINTN              StackStart;
@@ -231,17 +241,16 @@ typedef struct {
 #pragma pack()
 
 //
-// CPU MP Data save in memory
+// CPU MP Data save in memory, and intended for use in C code.
+// There are some duplicated fields, such as XD status, between
+// CpuMpData and ExchangeInfo. These duplications in CpuMpData
+// are present to avoid to be direct accessed and comprehended
+// in assembly code.
 //
 struct _CPU_MP_DATA {
   UINT64                           CpuInfoInHob;
   UINT32                           CpuCount;
   UINT32                           BspNumber;
-  //
-  // The above fields data will be passed from PEI to DXE
-  // Please make sure the fields offset same in the different
-  // architecture.
-  //
   SPIN_LOCK                        MpLock;
   UINTN                            Buffer;
   UINTN                            CpuApStackSize;
@@ -262,6 +271,7 @@ struct _CPU_MP_DATA {
   UINT64                           TotalTime;
   EFI_EVENT                        WaitEvent;
   UINTN                            **FailedCpuList;
+  BOOLEAN                          EnableExecuteDisableForSwitchContext;
 
   AP_INIT_STATE                    InitFlag;
   BOOLEAN                          SwitchBspFlag;
@@ -464,6 +474,15 @@ SaveCpuMpData (
 UINTN
 GetWakeupBuffer (
   IN UINTN  WakeupBufferSize
+  );
+
+/**
+  Switch Context for each AP.
+
+**/
+VOID
+SwitchApContext (
+  IN MP_HAND_OFF  *MpHandOff
   );
 
 /**
@@ -852,20 +871,6 @@ FillExchangeInfoDataSevEs (
   );
 
 /**
-  Issue RMPADJUST to adjust the VMSA attribute of an SEV-SNP page.
-
-  @param[in]  PageAddress
-  @param[in]  VmsaPage
-
-  @return  RMPADJUST return value
-**/
-UINT32
-SevSnpRmpAdjust (
-  IN  EFI_PHYSICAL_ADDRESS  PageAddress,
-  IN  BOOLEAN               VmsaPage
-  );
-
-/**
   Create an SEV-SNP AP save area (VMSA) for use in running the vCPU.
 
   @param[in]  CpuMpData        Pointer to CPU MP Data
@@ -890,6 +895,29 @@ VOID
 SevSnpCreateAP (
   IN CPU_MP_DATA  *CpuMpData,
   IN INTN         ProcessorNumber
+  );
+
+/**
+  Determine if the SEV-SNP AP Create protocol should be used.
+
+  @param[in]  CpuMpData  Pointer to CPU MP Data
+
+  @retval     TRUE       Use SEV-SNP AP Create protocol
+  @retval     FALSE      Do not use SEV-SNP AP Create protocol
+**/
+BOOLEAN
+SevSnpUseCreateAP (
+  IN  CPU_MP_DATA  *CpuMpData
+  );
+
+/**
+  Get pointer to CPU MP Data structure from GUIDed HOB.
+
+  @param[in] CpuMpData  The pointer to CPU MP Data structure.
+**/
+VOID
+AmdSevUpdateCpuMpData (
+  IN CPU_MP_DATA  *CpuMpData
   );
 
 #endif

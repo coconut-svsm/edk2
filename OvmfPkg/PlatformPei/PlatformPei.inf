@@ -94,6 +94,7 @@
   gUefiOvmfPkgTokenSpaceGuid.PcdQ35SmramAtDefaultSmbase
   gUefiOvmfPkgTokenSpaceGuid.PcdXenPvhStartOfDayStructPtr
   gUefiOvmfPkgTokenSpaceGuid.PcdXenPvhStartOfDayStructPtrSize
+  gUefiOvmfPkgTokenSpaceGuid.PcdSecureBootSupported
   gEfiMdePkgTokenSpaceGuid.PcdGuidedExtractHandlerTableAddress
   gEfiMdePkgTokenSpaceGuid.PcdPciExpressBaseAddress
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwSpareSize
@@ -115,6 +116,7 @@
   gEfiMdePkgTokenSpaceGuid.PcdConfidentialComputingGuestAttr
   gUefiCpuPkgTokenSpaceGuid.PcdGhcbHypervisorFeatures
   gEfiMdeModulePkgTokenSpaceGuid.PcdTdxSharedBitMask
+  gUefiCpuPkgTokenSpaceGuid.PcdSevSnpApicIds
 
 [FixedPcd]
   gUefiOvmfPkgTokenSpaceGuid.PcdOvmfCpuidBase
@@ -126,13 +128,14 @@
   gEmbeddedTokenSpaceGuid.PcdMemoryTypeEfiRuntimeServicesData
   gUefiOvmfPkgTokenSpaceGuid.PcdOvmfSecGhcbBackupBase
   gUefiOvmfPkgTokenSpaceGuid.PcdOvmfSecGhcbBackupSize
+  gUefiOvmfPkgTokenSpaceGuid.PcdOvmfSecSvsmCaaBase
+  gUefiOvmfPkgTokenSpaceGuid.PcdOvmfSecSvsmCaaSize
   gUefiOvmfPkgTokenSpaceGuid.PcdOvmfWorkAreaBase
   gUefiOvmfPkgTokenSpaceGuid.PcdOvmfWorkAreaSize
   gUefiOvmfPkgTokenSpaceGuid.PcdOvmfSnpSecretsBase
   gUefiOvmfPkgTokenSpaceGuid.PcdOvmfSnpSecretsSize
 
 [FeaturePcd]
-  gUefiOvmfPkgTokenSpaceGuid.PcdCsmEnable
   gUefiOvmfPkgTokenSpaceGuid.PcdSmmSmramRequire
 
 [Ppis]

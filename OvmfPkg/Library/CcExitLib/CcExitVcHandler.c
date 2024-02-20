@@ -1,7 +1,7 @@
 /** @file
   X64 #VC Exception Handler functon.
 
-  Copyright (C) 2020, Advanced Micro Devices, Inc. All rights reserved.<BR>
+  Copyright (C) 2020 - 2024, Advanced Micro Devices, Inc. All rights reserved.<BR>
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
 **/
@@ -18,6 +18,7 @@
 
 #include "CcExitVcHandler.h"
 #include "CcInstruction.h"
+#include "CcExitSvsm.h"
 
 //
 // Non-automatic Exit function prototype
@@ -713,9 +714,28 @@ MsrExit (
   IN     CC_INSTRUCTION_DATA     *InstructionData
   )
 {
-  UINT64  ExitInfo1, Status;
+  MSR_SVSM_CAA_REGISTER  Msr;
+  UINT64                 ExitInfo1;
+  UINT64                 Status;
 
   ExitInfo1 = 0;
+
+  //
+  // The SVSM CAA MSR is a software implemented MSR and not supported
+  // by the hardware, handle it directly.
+  //
+  if (Regs->Rax == MSR_SVSM_CAA) {
+    // Writes to the SVSM CAA MSR are ignored
+    if (*(InstructionData->OpCodes + 1) == 0x30) {
+      return 0;
+    }
+
+    Msr.Uint64 = SvsmGetCaaPa ();
+    Regs->Rax  = Msr.Bits.Lower32Bits;
+    Regs->Rdx  = Msr.Bits.Upper32Bits;
+
+    return 0;
+  }
 
   switch (*(InstructionData->OpCodes + 1)) {
     case 0x30: // WRMSR
@@ -1114,8 +1134,6 @@ SnpEnabled (
 
   @param[in]      XFeaturesEnabled  Bit-mask of enabled XSAVE features/areas as
                                     indicated by XCR0/MSR_IA32_XSS bits
-  @param[in]      XSaveBaseSize     Base/legacy XSAVE area size (e.g. when
-                                    XCR0 is 1)
   @param[in, out] XSaveSize         Pointer to storage for calculated XSAVE area
                                     size
   @param[in]      Compacted         Whether or not the calculation is for the
@@ -1130,7 +1148,6 @@ STATIC
 BOOLEAN
 GetCpuidXSaveSize (
   IN     UINT64   XFeaturesEnabled,
-  IN     UINT32   XSaveBaseSize,
   IN OUT UINT32   *XSaveSize,
   IN     BOOLEAN  Compacted
   )
@@ -1139,15 +1156,16 @@ GetCpuidXSaveSize (
   UINT64              XFeaturesFound = 0;
   UINT32              Idx;
 
-  *XSaveSize = XSaveBaseSize;
+  //
+  // The base/legacy XSave size is documented to be 0x240 in the APM.
+  //
+  *XSaveSize = 0x240;
   CpuidInfo  = (SEV_SNP_CPUID_INFO *)(UINT64)PcdGet32 (PcdOvmfCpuidBase);
 
   for (Idx = 0; Idx < CpuidInfo->Count; Idx++) {
     SEV_SNP_CPUID_FUNCTION  *CpuidFn = &CpuidInfo->function[Idx];
 
-    if (!((CpuidFn->EaxIn == 0xD) &&
-          ((CpuidFn->EcxIn == 0) || (CpuidFn->EcxIn == 1))))
-    {
+    if (!((CpuidFn->EaxIn == 0xD) && (CpuidFn->EcxIn > 1))) {
       continue;
     }
 
@@ -1357,7 +1375,6 @@ GetCpuidFw (
 
     if (!GetCpuidXSaveSize (
            XCr0 | XssMsr.Uint64,
-           *Ebx,
            &XSaveSize,
            Compacted
            ))
@@ -1391,6 +1408,11 @@ GetCpuidFw (
     *Ebx = (*Ebx & 0xFFFFFF00) | (Ebx2 & 0x000000FF);
     /* node ID */
     *Ecx = (*Ecx & 0xFFFFFF00) | (Ecx2 & 0x000000FF);
+  } else if (EaxIn == 0x8000001F) {
+    /* Set the SVSM feature bit if running under an SVSM */
+    if (CcExitSnpSvsmPresent ()) {
+      *Eax |= BIT28;
+    }
   }
 
 Out:

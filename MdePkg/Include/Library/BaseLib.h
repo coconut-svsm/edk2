@@ -182,8 +182,18 @@ RiscVSetSupervisorAddressTranslationRegister (
   );
 
 UINT64
+RiscVGetSupervisorAddressTranslationRegister (
+  VOID
+  );
+
+UINT64
 RiscVReadTimer (
   VOID
+  );
+
+VOID
+RiscVSetSupervisorTimeCompareRegister (
+  IN UINT64
   );
 
 VOID
@@ -199,6 +209,59 @@ RiscVDisableTimerInterrupt (
 VOID
 RiscVClearPendingTimerInterrupt (
   VOID
+  );
+
+/**
+  RISC-V invalidate instruction cache.
+
+**/
+VOID
+EFIAPI
+RiscVInvalidateInstCacheFenceAsm (
+  VOID
+  );
+
+/**
+  RISC-V invalidate data cache.
+
+**/
+VOID
+EFIAPI
+RiscVInvalidateDataCacheFenceAsm (
+  VOID
+  );
+
+/**
+  RISC-V flush cache block. Atomically perform a clean operation
+  followed by an invalidate operation
+
+**/
+VOID
+EFIAPI
+RiscVCpuCacheFlushCmoAsm (
+  IN UINTN
+  );
+
+/**
+Perform a write transfer to another cache or to memory if the
+data in the copy of the cache block have been modified by a store
+operation
+
+**/
+VOID
+EFIAPI
+RiscVCpuCacheCleanCmoAsm (
+  IN UINTN
+  );
+
+/**
+Deallocate the copy of the cache block
+
+**/
+VOID
+EFIAPI
+RiscVCpuCacheInvalCmoAsm (
+  IN UINTN
   );
 
 #endif // defined (MDE_CPU_RISCV64)
@@ -4594,6 +4657,11 @@ CalculateCrc16Ansi (
   IN  UINT16      InitialValue
   );
 
+//
+// Initial value for the CRC16-ANSI algorithm, when no prior checksum has been calculated.
+//
+#define CRC16ANSI_INIT  0xffff
+
 /**
    Calculates the CRC32c checksum of the given buffer.
 
@@ -7585,6 +7653,45 @@ VOID
 EFIAPI
 AsmVmgExit (
   VOID
+  );
+
+///
+/// The structure used to supply and return data to and from the SVSM.
+///
+typedef struct {
+  VOID      *Caa;
+  UINT64    RaxIn;
+  UINT64    RcxIn;
+  UINT64    RdxIn;
+  UINT64    R8In;
+  UINT64    R9In;
+  UINT64    RaxOut;
+  UINT64    RcxOut;
+  UINT64    RdxOut;
+  UINT64    R8Out;
+  UINT64    R9Out;
+  UINT8     *CallPending;
+} SVSM_CALL_DATA;
+
+/**
+  Executes a VMGEXIT instruction (VMMCALL with a REP prefix) with arguments
+  and return code
+
+  Executes a VMGEXIT instruction placing the specified arguments in the
+  corresponding registers before invocation. Upon return an XCHG is done to
+  atomically clear and retrieve the SVSM call pending value. The returned RAX
+  register value becomes the function return code. This function is intended
+  for use with an SVSM. This function is only available on IA-32 and x64.
+
+  @param[in,out]  SvsmCallPending  Pointer to the location of the SVSM call data
+
+  @return                          Value of the RAX register on return
+
+**/
+UINT32
+EFIAPI
+AsmVmgExitSvsm (
+  IN OUT SVSM_CALL_DATA  *SvsmCallData
   );
 
 /**
